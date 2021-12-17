@@ -5,7 +5,7 @@ sudo apt-get update && sudo apt-get install python2.7-dev python-pillow -y
 make build-python
 sudo make install-python
 cd bindings
-sudo pip install -e python/
+sudo pip install --ignore-installed -e python/
 cd ../../
 echo "Installing required dependencies. This may take some time (10-20 minutes-ish)..."
 git reset --hard
@@ -15,7 +15,7 @@ git pull
 sudo apt-get install libxml2-dev libxslt-dev
 sudo pip install pytz tzlocal feedparser pyowm
 sudo pip uninstall -y mlbgame
-sudo pip install git+git://github.com/ajbowler/mlbgame.git@#egg=mlbgame
+sudo pip install git+git://github.com/ajbowler/mlbgame.git#egg=mlbgame
 make
 echo "If you didn't see any errors above, everything should be installed!"
 if [ -n "$1" ]; then

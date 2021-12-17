@@ -1,13 +1,14 @@
 from datetime import datetime, timedelta
-from final import Final
-from pregame import Pregame
-from scoreboard import Scoreboard
-from status import Status
-from inning import Inning
-from weather import Weather
-from headlines import Headlines
+from data.final import Final
+from data.pregame import Pregame
+from data.scoreboard import Scoreboard
+from data.standings import Standings, Division, Team
+from data.status import Status
+from data.inning import Inning
+from data.weather import Weather
+from data.headlines import Headlines
 import urllib
-import layout
+import data.layout as layout
 import mlbgame
 import debug
 import time
@@ -15,7 +16,10 @@ import time
 try:
     from urllib.error import URLError
 except ImportError:
-    from urllib2 import URLError
+    try:
+        from urllib2 import URLError
+    except ImportError:
+        from urllib3.error import URLError
 
 NETWORK_RETRY_SLEEP_TIME = 10.0
 
@@ -76,13 +80,13 @@ class Data:
 
   def refresh_standings(self):
     try:
-      self.standings = mlbgame.standings()
+      self.standings = Standings.fetch(self.year, self.month, self.day)
     except:
       debug.error("Failed to refresh standings.")
 
   def refresh_games(self):
     debug.log("Updating games for {}/{}/{}".format(self.month, self.day, self.year))
-    urllib.urlcleanup()
+    urllib.request.urlcleanup()
     attempts_remaining = 5
     while attempts_remaining > 0:
       try:
@@ -100,7 +104,7 @@ class Data:
         self.games_refresh_time = time.time()
         self.network_issues = False
         break
-      except URLError, e:
+      except URLError as e:
         self.network_issues = True
         debug.error("Networking error while refreshing the master list of games. {} retries remaining.".format(attempts_remaining))
         debug.error("URLError: {}".format(e.reason))
@@ -114,7 +118,7 @@ class Data:
         time.sleep(NETWORK_RETRY_SLEEP_TIME)
 
   def refresh_overview(self):
-    urllib.urlcleanup()
+    urllib.request.urlcleanup()
     attempts_remaining = 5
     while attempts_remaining > 0:
       try:
@@ -124,7 +128,7 @@ class Data:
         self.print_overview_debug()
         self.network_issues = False
         break
-      except URLError, e:
+      except URLError as e:
         self.network_issues = True
         debug.error("Networking Error while refreshing the current overview. {} retries remaining.".format(attempts_remaining))
         debug.error("URLError: {}".format(e.reason))
@@ -150,7 +154,7 @@ class Data:
   # Will use a network call to fetch the preferred team's game overview
   def fetch_preferred_team_overview(self):
     if not self.is_offday_for_preferred_team():
-      urllib.urlcleanup()
+      urllib.request.urlcleanup()
       game = self.games[self.game_index_for_preferred_team()]
       game_overview = mlbgame.overview(game.game_id)
       debug.log("Preferred Team's Game Status: {}, {} {}".format(game_overview.status, game_overview.inning_state, game_overview.inning))
@@ -223,26 +227,26 @@ class Data:
     team_index = 0
     team_idxs = [i for i, game in enumerate(self.games) if team_name in [game.away_team, game.home_team]]
     if len(team_idxs) > 0:
-      retries = 5
-      while retries > 0:
+      attempts_remaining = 5
+      while attempts_remaining > 0:
         try:
           team_index = next((i for i in team_idxs if Status.is_live(mlbgame.overview(self.games[i].game_id))), team_idxs[0])
           self.network_issues = False
           break
-        except URLError, e:
+        except URLError as e:
           self.network_issues = True
-          debug.error("Networking Error while refreshing live game status of {}. {} retries remaining.".format(team_name,retries))
+          debug.error("Networking Error while refreshing live game status of {}. {} retries remaining.".format(team_name,attempts_remaining))
           debug.error("URLError: {}".format(e.reason))
           attempts_remaining -= 1
           time.sleep(NETWORK_RETRY_SLEEP_TIME)
         except ValueError:
           self.network_issues = True
-          debug.error("Value Error while refreshing live game status of {}. {} retries remaining.".format(team_name,retries))
+          debug.error("Value Error while refreshing live game status of {}. {} retries remaining.".format(team_name,attempts_remaining))
           debug.error("ValueError: Failed to refresh overview for {}".format(self.current_game().game_id))
           attempts_remaining -= 1
           time.sleep(NETWORK_RETRY_SLEEP_TIME)
 
-      if retries <= 0:
+      if attempts_remaining <= 0:
         debug.error("Major networking error while refreshing live game status of {}".format(team_name))
         debug.error("Returning team_index of 0 because we ran out of networking retries.")
 
@@ -274,4 +278,3 @@ class Data:
     debug.log("Pre: {}".format(Pregame(self.overview, self.config.time_format)))
     debug.log("Live: {}".format(Scoreboard(self.overview)))
     debug.log("Final: {}".format(Final(self.current_game())))
-

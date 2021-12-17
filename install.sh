@@ -5,7 +5,7 @@ sudo apt-get update && sudo apt-get install python2.7-dev python-pillow -y
 make build-python
 sudo make install-python
 cd bindings
-sudo pip install --ignore-installed -e python/
+#sudo pip install --ignore-installed -e python/
 cd ../../
 echo "Installing required dependencies. This may take some time (10-20 minutes-ish)..."
 git reset --hard

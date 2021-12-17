@@ -15,7 +15,7 @@ git pull
 sudo apt-get install libxml2-dev libxslt-dev
 sudo pip install pytz tzlocal feedparser pyowm
 sudo pip uninstall -y mlbgame
-sudo pip install git+git://github.com/ajbowler/mlbgame.git@#egg=mlbgame
+sudo pip install git+git://github.com/ajbowler/mlbgame.git#egg=mlbgame
 make
 echo "If you didn't see any errors above, everything should be installed!"
 if [ -n "$1" ]; then

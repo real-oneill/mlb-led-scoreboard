@@ -33,7 +33,7 @@
 		}
 	},
 	"weather": {
-		"apikey": "YOUR_API_KEY_HERE",
+		"apikey": "a7d29f614b993205e53acba146b72adc",
 		"location": "Chicago,il,us",
 		"metric_units": false
 	},

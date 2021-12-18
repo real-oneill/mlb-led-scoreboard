@@ -1,0 +1,282 @@
+{
+  "defaults": {
+    "font_name": "6x12"
+  },
+  "bases": {
+    "1B": {
+      "x": 44,
+      "y": 6,
+      "size": 16
+    },
+    "2B": {
+      "x": 39,
+      "y": 1,
+      "size": 16
+    },
+    "3B": {
+      "x": 34,
+      "y": 6,
+      "size": 16
+    }
+  },
+  "final": {
+    "inning": {
+      "x": 48,
+      "y": 7
+    },
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 64
+    },
+    "nohit_text": {
+      "x": 42,
+      "y": 11
+    }
+  },
+  "inning": {
+    "break": {
+      "number": {
+        "x": 47,
+        "y": 10
+      },
+      "text": {
+        "x": 47,
+        "y": 5
+      }
+    },
+    "number": {
+      "x": 64,
+      "y": 4
+    },
+    "arrow": {
+      "size": 3,
+      "up": {
+        "x_offset": -3,
+        "y_offset": -2
+      },
+      "down": {
+        "x_offset": -3,
+        "y_offset": -1
+      }
+    }
+  },
+  "outs": {
+    "1": {
+      "x": 55,
+      "y": 12,
+      "size": 4,
+      "nohit": {
+        "x": 55,
+        "y": 13,
+        "size": 4
+      },
+      "perfect_game": {
+        "x": 55,
+        "y": 13,
+        "size": 4
+      }
+    },
+    "2": {
+      "x": 58,
+      "y": 12,
+      "size": 4,
+      "nohit": {
+        "x": 58,
+        "y": 13,
+        "size": 4
+      },
+      "perfect_game": {
+        "x": 58,
+        "y": 13,
+        "size": 4
+      }
+    },
+    "3": {
+      "x": 61,
+      "y": 12,
+      "size": 4,
+      "nohit": {
+        "x": 61,
+        "y": 13,
+        "size": 4
+      },
+      "perfect_game": {
+        "x": 61,
+        "y": 13,
+        "size": 4
+      }
+    }
+  },
+  "batter_count": {
+    "x": 55,
+    "y": 11,
+    "nohit": {
+      "x": 55,
+      "y": 8
+    },
+    "perfect_game": {
+      "x": 55,
+      "y": 8
+    }
+  },
+  "nohitter": {
+    "x": 55,
+    "y": 12,
+    "innings_until_display": 5
+  },
+  "pregame": {
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 64,
+      "warmup": {
+        "x": 0,
+        "y": 15,
+        "width": 64
+      }
+    },
+    "start_time": {
+      "x": 48,
+      "y": 8
+    },
+    "warmup_text": {
+      "x": 48,
+      "y": 8
+    }
+  },
+  "standings": {
+    "offset": 4,
+    "height": 16,
+    "width": 64,
+    "divider": {
+      "x": 12
+    },
+    "stat_title": {
+      "x": 14
+    },
+    "team": {
+      "name": {
+        "x": 1
+      },
+      "record": {
+        "x": 32
+      },
+      "games_back": {
+        "x": 63
+      }
+    }
+  },
+  "status": {
+    "text": {
+      "x": 48,
+      "y": 7,
+      "short_text": false
+    },
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 64
+    }
+  },
+  "teams": {
+    "background": {
+      "away": {
+        "width": 32,
+        "height": 6,
+        "x": 0,
+        "y": 0
+      },
+      "home": {
+        "width": 32,
+        "height": 6,
+        "x": 0,
+        "y": 6
+      }
+    },
+    "accent": {
+      "away": {
+        "width": 1,
+        "height": 8,
+        "x": 0,
+        "y": 0
+      },
+      "home": {
+        "width": 1,
+        "height": 8,
+        "x": 0,
+        "y": 8
+      }
+    },
+    "name": {
+      "away": {
+        "x": 2,
+        "y": 5
+      },
+      "home": {
+        "x": 2,
+        "y": 10
+      }
+    },
+    "runs": {
+      "away": {
+        "x": 32,
+        "y": 5
+      },
+      "home": {
+        "x": 32,
+        "y": 10
+      }
+    }
+  },
+  "offday": {
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 32
+    },
+    "time": {
+      "x": 20,
+      "y": 5
+    },
+    "conditions": {
+      "x": 20,
+      "y": 8
+    },
+    "temperature": {
+      "x": 5,
+      "y": 12
+    },
+    "wind_speed": {
+      "x": 0,
+      "y": -1
+    },
+    "wind_dir": {
+      "x": 0,
+      "y": -1
+    },
+    "wind": {
+      "x": 20,
+      "y": 12
+    },
+    "weather_icon": {
+      "x": 1,
+      "y": 1,
+      "width": 8,
+      "height": 8
+    }
+  },
+  "network": {
+    "font_name": "4x6",
+    "background": {
+      "width": 4,
+      "height": 4,
+      "x": 60,
+      "y": 12
+    },
+    "text": {
+      "x": 14,
+      "y": 16
+    }
+  }
+}

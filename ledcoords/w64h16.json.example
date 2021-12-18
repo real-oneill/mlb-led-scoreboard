@@ -1,6 +1,6 @@
 {
   "defaults": {
-    "font_name": "6x12"
+    "font_name": "4x6"
   },
   "bases": {
     "1B": {
@@ -27,7 +27,7 @@
     "scrolling_text": {
       "x": 0,
       "y": 15,
-      "width": 64
+      "width": 32
     },
     "nohit_text": {
       "x": 42,
@@ -183,15 +183,15 @@
     "background": {
       "away": {
         "width": 32,
-        "height": 6,
+        "height": 8,
         "x": 0,
         "y": 0
       },
       "home": {
         "width": 32,
-        "height": 6,
+        "height": 8,
         "x": 0,
-        "y": 6
+        "y": 8
       }
     },
     "accent": {
@@ -220,11 +220,11 @@
     },
     "runs": {
       "away": {
-        "x": 32,
+        "x": 24,
         "y": 5
       },
       "home": {
-        "x": 32,
+        "x": 24,
         "y": 10
       }
     }

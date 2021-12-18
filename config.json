@@ -39,7 +39,7 @@
 	},
 	"time_format": "12h",
 	"end_of_day": "00:00",
-	"full_team_names": true,
+	"full_team_names": false,
 	"scrolling_speed": 2,
 	"debug": false,
 	"demo_date": "2021-06-08"

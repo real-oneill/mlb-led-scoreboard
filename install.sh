@@ -14,7 +14,7 @@ echo "Installing required dependencies. This may take some time (10-20 minutes-i
 # git fetch origin --prune
 # git pull
 sudo apt-get install libxml2-dev libxslt-dev -y
-sudo python3 -m pip install pytz tzlocal feedparser pyowm
+sudo python3 -m pip install pytz tzlocal feedparser "pyowm<3.0.0"
 sudo python3 -m pip uninstall -y mlbgame
 sudo python3 -m pip install git+git://github.com/ajbowler/mlbgame.git#egg=mlbgame
 make

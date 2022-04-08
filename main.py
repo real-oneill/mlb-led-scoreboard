@@ -10,6 +10,7 @@ import renderers.standings
 import mlbgame
 import debug
 
+
 SCRIPT_NAME = "MLB LED Scoreboard"
 SCRIPT_VERSION = "3.3.1"
 

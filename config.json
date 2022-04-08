@@ -4,12 +4,12 @@
 		"divisions": ["AL Central"]
 	},
 	"news_ticker": {
-		"team_offday": true,
+		"team_offday": false,
 		"always_display": false,
 		"preferred_teams": true,
 		"traderumors": true,
 		"mlb_news": true,
-		"countdowns": true,
+		"countdowns": false,
 		"date": true,
 		"date_format": "%A, %B %-d"
 	},

@@ -3,11 +3,12 @@ import time
 import feedparser
 from datetime import datetime
 from data.dates import Dates
+import html
 
-try:
-  from HTMLParser import HTMLParser
-except ImportError:
-  from html.parser import HTMLParser
+#try:
+#  from HTMLParser import HTMLParser
+#except ImportError:
+#  from html.parser import HTMLParser
 
 
 HEADLINE_UPDATE_RATE = 60 * 60 # 1 hour between feed updates
@@ -141,8 +142,8 @@ class Headlines:
 
     for idx, entry in enumerate(feed.entries):
       if idx < max_entries:
-        h = HTMLParser()
-        text = h.unescape(entry.title)
+       #h = HTMLParser()
+        text = html.unescape(entry.title)
         headlines += text + spaces
     return title + spaces + headlines
 

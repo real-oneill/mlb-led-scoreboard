@@ -4,17 +4,17 @@
   },
   "bases": {
     "1B": {
-      "x": 42,
+      "x": 41,
       "y": 6,
       "size": 8
     },
     "2B": {
-      "x": 37,
+      "x": 36,
       "y": 1,
       "size": 8
     },
     "3B": {
-      "x": 32,
+      "x": 31,
       "y": 6,
       "size": 8
     }
@@ -92,12 +92,12 @@
     "arrow": {
       "size": 3,
       "up": {
-        "x_offset": -3,
-        "y_offset": -1
+        "x_offset": -4,
+        "y_offset": -2
       },
       "down": {
-        "x_offset": -3,
-        "y_offset": 0
+        "x_offset": -4,
+        "y_offset": -1
       }
     }
   },

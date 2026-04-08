@@ -92,12 +92,12 @@
     "arrow": {
       "size": 3,
       "up": {
-        "x_offset": -1,
-        "y_offset": -1
+        "x_offset": -4,
+        "y_offset": -4
       },
       "down": {
         "x_offset": -3,
-        "y_offset": 0
+        "y_offset": -1
       }
     }
   },

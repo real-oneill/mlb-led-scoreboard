@@ -279,34 +279,16 @@ def _render_due_up(canvas, layout, colors, atbat: AtBat, text_pos):
     batter_color = colors.graphics_color("inning.break.due_up_names")
 
     leadoff = layout.coords("inning.break.due_up.leadoff")
-    on_deck = layout.coords("inning.break.due_up.on_deck")
-    in_hole = layout.coords("inning.break.due_up.in_hole")
     background = colors.graphics_color("default.background")
 
-    p1 = scrollingtext.render_text(canvas, leadoff["x"], leadoff["y"], leadoff["width"], batter_font, batter_color, background, atbat.batter, text_pos, center=False)
-    p2 = scrollingtext.render_text(canvas, on_deck["x"], on_deck["y"], on_deck["width"], batter_font, batter_color, background, atbat.onDeck, text_pos, center=False)
-    p3 = scrollingtext.render_text(canvas, in_hole["x"], in_hole["y"], in_hole["width"], batter_font, batter_color, background, atbat.inHole, text_pos, center=False)
+    # Combine all due-up batters into a single scrolling string so short
+    # names still scroll and the viewer sees the full batting order.
+    names = [n for n in [atbat.batter, atbat.onDeck, atbat.inHole] if n]
+    combined = "  ".join(names) if names else ""
 
-    due_font = layout.font("inning.break.due_up.due")
-    due_color = colors.graphics_color("inning.break.due_up")
+    p1 = scrollingtext.render_text(canvas, leadoff["x"], leadoff["y"], leadoff["width"], batter_font, batter_color, background, combined, text_pos, center=False)
 
-    due = layout.coords("inning.break.due_up.due")
-    up = layout.coords("inning.break.due_up.up")
-    graphics.DrawText(canvas, due_font["font"], due["x"], due["y"], due_color, "Due")
-    graphics.DrawText(canvas, due_font["font"], up["x"], up["y"], due_color, "Up:")
-
-    divider = layout.coords("inning.break.due_up.divider")
-    if divider["draw"]:
-        graphics.DrawLine(
-            canvas,
-            divider["x"],
-            divider["y_start"],
-            divider["x"],
-            divider["y_end"],
-            colors.graphics_color("inning.break.due_up_divider"),
-        )
-
-    return max(p1, p2, p3)
+    return p1
 
 
 def _render_inning_display(canvas, layout, colors, inning: Inning):

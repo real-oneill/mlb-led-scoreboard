@@ -1,33 +1,28 @@
-import data.scoreboard_config
-import time
-import sys
+import logging, os
+from logging.handlers import RotatingFileHandler
 
-debug_enabled = False
-time_format = "%H"
+LOGFILE = os.path.abspath(os.path.join(__file__, "..", "logs", "mlbled.log"))
 
-def set_debug_status(config):
-	global debug_enabled
-	debug_enabled = config.debug
+logger = logging.getLogger("mlbled")
 
-	global time_format
-	time_format = config.time_format
+formatter = logging.Formatter("{levelname} ({asctime}): {message}", style="{", datefmt="%H:%M:%S")
 
-def __debugprint(text):
-	print(text)
-	sys.stdout.flush()
+# Log to stdout
+sh = logging.StreamHandler()
+sh.setFormatter(formatter)
 
-def log(text):
-	if debug_enabled:
-		__debugprint("DEBUG ({}): {}".format(__timestamp(), text))
+# Log to a file, handling rotation at 1MB
+fh = RotatingFileHandler(LOGFILE, maxBytes=0x100000, backupCount=5)
+fh.setFormatter(formatter)
 
-def warning(text):
-  __debugprint("WARNING ({}): {}".format(__timestamp(), text))
+logger.addHandler(sh)
+logger.addHandler(fh)
 
-def error(text):
-	__debugprint("ERROR ({}): {}".format(__timestamp(), text))
+logger.propagate = False
 
-def info(text):
-	__debugprint("INFO ({}): {}".format(__timestamp(), text))
-
-def __timestamp():
-	return time.strftime("{}:%M:%S".format(time_format), time.localtime())
+log = logger.debug
+info = logger.info
+warning = logger.warning
+error = logger.error
+critical = logger.critical
+exception = logger.exception

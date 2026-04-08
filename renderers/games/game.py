@@ -284,7 +284,7 @@ def _render_due_up(canvas, layout, colors, atbat: AtBat, text_pos):
     # Combine all due-up batters into a single scrolling string so short
     # names still scroll and the viewer sees the full batting order.
     names = [n for n in [atbat.batter, atbat.onDeck, atbat.inHole] if n]
-    combined = "  ".join(names) if names else ""
+    combined = "Due Up: " + ", ".join(names) if names else ""
 
     p1 = scrollingtext.render_text(canvas, leadoff["x"], leadoff["y"], leadoff["width"], batter_font, batter_color, background, combined, text_pos, center=False)
 

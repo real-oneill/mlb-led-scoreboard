@@ -73,11 +73,6 @@ def main(matrix, config_base):
     # This will fetch initial data from MLB
     data = Data(config)
 
-    # Terminate after 3 hours
-    shutdown_timer = threading.Timer(3 * 3600, lambda: (debug.log("3-hour runtime limit reached, exiting."), sys.exit(0)))
-    shutdown_timer.daemon = True
-    shutdown_timer.start()
-
     # create render thread
     render = threading.Thread(target=__render_main, args=[matrix, data], name="render_thread", daemon=True)
     time.sleep(1)

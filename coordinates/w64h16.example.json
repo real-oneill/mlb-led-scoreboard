@@ -37,11 +37,11 @@
   "inning": {
     "break": {
       "number": {
-        "x": 46,
+        "x": 51,
         "y": 6
       },
       "text": {
-        "x": 28,
+        "x": 33,
         "y": 6
       },
       "due_up": {
@@ -59,7 +59,7 @@
           "y_start": 0,
           "y_end": 16
         },
-        "loop": 64,
+        "loop": 128,
         "leadoff": {
           "x": 28,
           "y": 15,
@@ -92,8 +92,8 @@
     "arrow": {
       "size": 3,
       "up": {
-        "x_offset": -4,
-        "y_offset": -2
+        "x_offset": -5,
+        "y_offset": -4
       },
       "down": {
         "x_offset": -4,

@@ -1,0 +1,21 @@
+[Unit]
+Description=MLB LED Scoreboard
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi/mlb-led-scoreboard
+ExecStart=/home/pi/mlb-led-scoreboard/venv/bin/python main.py \
+  --led-gpio-mapping=adafruit-hat-pwm \
+  --led-rows=16 \
+  --led-cols=64 \
+  --led-slowdown-gpio=4 \
+  --led-brightness=80
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/pi/mlb-led-scoreboard/logs/mlbled.log
+StandardError=append:/home/pi/mlb-led-scoreboard/logs/mlbled.log
+
+[Install]
+WantedBy=multi-user.target

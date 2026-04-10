@@ -1,0 +1,386 @@
+{
+  "defaults": {
+    "font_name": "4x6"
+  },
+  "bases": {
+    "1B": {
+      "x": 41,
+      "y": 6,
+      "size": 8
+    },
+    "2B": {
+      "x": 36,
+      "y": 1,
+      "size": 8
+    },
+    "3B": {
+      "x": 31,
+      "y": 6,
+      "size": 8
+    }
+  },
+  "final": {
+    "inning": {
+      "x": 48,
+      "y": 7
+    },
+    "scrolling_text": {
+      "x": 28,
+      "y": 15,
+      "width": 36
+    },
+    "nohit_text": {
+      "x": 42,
+      "y": 11
+    }
+  },
+  "inning": {
+    "break": {
+      "number": {
+        "x": 51,
+        "y": 6
+      },
+      "text": {
+        "x": 33,
+        "y": 6
+      },
+      "due_up": {
+        "due": {
+          "x": 0,
+          "y": -1
+        },
+        "up": {
+          "x": 0,
+          "y": -1
+        },
+        "divider": {
+          "draw": false,
+          "x": 28,
+          "y_start": 0,
+          "y_end": 16
+        },
+        "loop": 128,
+        "leadoff": {
+          "x": 28,
+          "y": 15,
+          "width": 36
+        },
+        "on_deck": {
+          "x": 0,
+          "y": -1,
+          "width": 36
+        },
+        "in_hole": {
+          "x": 0,
+          "y": -1,
+          "width": 36
+        }
+      }
+    },
+    "number": {
+      "x": 64,
+      "y": 5,
+      "nohit": {
+        "x": 64,
+        "y": 5
+      },
+      "perfect_game": {
+        "x": 64,
+        "y": 5
+      }
+    },
+    "arrow": {
+      "size": 3,
+      "up": {
+        "x_offset": -5,
+        "y_offset": -4
+      },
+      "down": {
+        "x_offset": -4,
+        "y_offset": -1
+      }
+    }
+  },
+  "outs": {
+    "1": {
+      "x": 53,
+      "y": 12,
+      "size": 2,
+      "nohit": {
+        "x": 53,
+        "y": 13,
+        "size": 2
+      },
+      "perfect_game": {
+        "x": 53,
+        "y": 13,
+        "size": 2
+      }
+    },
+    "2": {
+      "x": 56,
+      "y": 12,
+      "size": 2,
+      "nohit": {
+        "x": 56,
+        "y": 13,
+        "size": 2
+      },
+      "perfect_game": {
+        "x": 56,
+        "y": 13,
+        "size": 2
+      }
+    },
+    "3": {
+      "x": 59,
+      "y": 12,
+      "size": 2,
+      "nohit": {
+        "x": 59,
+        "y": 13,
+        "size": 2
+      },
+      "perfect_game": {
+        "x": 59,
+        "y": 13,
+        "size": 2
+      }
+    }
+  },
+  "atbat": {
+    "batter": {
+      "x": 28,
+      "y": -1,
+      "width": 36
+    },
+    "pitcher": {
+      "x": 28,
+      "y": -1,
+      "width": 36
+    },
+    "pitch": {
+      "x": 0,
+      "y": -1,
+      "enabled": false,
+      "mph": false,
+      "desc_length": "short"
+    },
+    "pitch_count": {
+      "x": 0,
+      "y": -1,
+      "enabled": false,
+      "append_pitcher_name": false
+    },
+    "loop": 28,
+    "strikeout": {
+      "x": 28,
+      "y": 15,
+      "font_name": "4x6",
+      "desc_length": "short",
+      "enabled": true
+    },
+    "play_result": {
+      "x": 28,
+      "y": 15,
+      "font_name": "4x6",
+      "desc_length": "short",
+      "enabled": true
+    }
+  },
+  "batter_count": {
+    "x": 52,
+    "y": 11,
+    "nohit": {
+      "x": 52,
+      "y": 8
+    },
+    "perfect_game": {
+      "x": 52,
+      "y": 8
+    }
+  },
+  "nohitter": {
+    "x": 52,
+    "y": 12,
+    "innings_until_display": 5
+  },
+  "pregame": {
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 64,
+      "warmup": {
+        "x": 0,
+        "y": 15,
+        "width": 64
+      }
+    },
+    "start_time": {
+      "x": 48,
+      "y": 8
+    },
+    "warmup_text": {
+      "x": 48,
+      "y": 8
+    }
+  },
+  "standings": {
+    "offset": 4,
+    "height": 16,
+    "width": 64,
+    "divider": {
+      "x": 12
+    },
+    "stat_title": {
+      "x": 14
+    },
+    "team": {
+      "name": {
+        "x": 1
+      },
+      "record": {
+        "x": 32
+      },
+      "games_back": {
+        "x": 63
+      }
+    },
+    "postseason": {
+      "matchup_y_gap": 4,
+      "series_x_gap": 16,
+      "wc_x_start": 2,
+      "wc_y_start": 4,
+      "ds_a_y_start": 12
+    }
+  },
+  "status": {
+    "text": {
+      "x": 48,
+      "y": 7,
+      "short_text": false
+    },
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 64
+    }
+  },
+  "teams": {
+    "background": {
+      "away": {
+        "width": 28,
+        "height": 8,
+        "x": 0,
+        "y": 0
+      },
+      "home": {
+        "width": 28,
+        "height": 8,
+        "x": 0,
+        "y": 8
+      }
+    },
+    "accent": {
+      "away": {
+        "width": 1,
+        "height": 8,
+        "x": 0,
+        "y": 0
+      },
+      "home": {
+        "width": 1,
+        "height": 8,
+        "x": 0,
+        "y": 8
+      }
+    },
+    "name": {
+      "away": {
+        "x": 3,
+        "y": 6
+      },
+      "home": {
+        "x": 3,
+        "y": 15
+      }
+    },
+    "record": {
+      "enabled": false,
+      "position": "absolute",
+      "away": {
+        "x": 15,
+        "y": 6
+      },
+      "home": {
+        "x": 15,
+        "y": 15
+      }
+    },
+    "runs": {
+      "runs_hits_errors": {
+        "show": false,
+        "compress_digits": false,
+        "spacing": 3
+      },
+      "away": {
+        "x": 23,
+        "y": 6
+      },
+      "home": {
+        "x": 23,
+        "y": 15
+      }
+    }
+  },
+  "offday": {
+    "scrolling_text": {
+      "x": 0,
+      "y": 15,
+      "width": 32
+    },
+    "time": {
+      "x": 20,
+      "y": 5
+    },
+    "conditions": {
+      "x": 20,
+      "y": 8
+    },
+    "temperature": {
+      "x": 5,
+      "y": 12
+    },
+    "wind_speed": {
+      "x": 0,
+      "y": -1
+    },
+    "wind_dir": {
+      "x": 0,
+      "y": -1
+    },
+    "wind": {
+      "x": 20,
+      "y": 12
+    },
+    "weather_icon": {
+      "x": 1,
+      "y": 1,
+      "width": 8,
+      "height": 8
+    }
+  },
+  "network": {
+    "font_name": "4x6",
+    "background": {
+      "width": 4,
+      "height": 4,
+      "x": 60,
+      "y": 12
+    },
+    "text": {
+      "x": 14,
+      "y": 16
+    }
+  }
+}

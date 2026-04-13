@@ -97,43 +97,66 @@ Set your preferred team, division, weather API key, and location. See [Configura
 
 ## Usage
 
-### Running Remotely (Mac)
+The scoreboard runs as a **systemd service** that auto-starts on boot. All commands below use `sshpass` — install it with `brew install hudochenkov/sshpass/sshpass`.
 
-**One-shot command from your Mac terminal** (requires `sshpass` — install with `brew install hudochenkov/sshpass/sshpass`):
+### Service management (from your Mac)
 
+**Start:**
 ```bash
-sshpass -p 'YOUR_PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
-  'cd /home/pi/mlb-led-scoreboard && bash run.sh'
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo systemctl start mlb-led-scoreboard'
 ```
 
-This SSH's into the Pi, runs `run.sh`, and returns control to your terminal. The scoreboard keeps running in the background. Logs are written to `logs/mlbled.log`.
-
-**To stop the scoreboard:**
+**Stop** (clears display):
 ```bash
-sshpass -p 'YOUR_PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local 'sudo killall python'
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo systemctl stop mlb-led-scoreboard'
 ```
 
-**To tail logs:**
+**Restart:**
 ```bash
-sshpass -p 'YOUR_PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local 'tail -f /home/pi/mlb-led-scoreboard/logs/mlbled.log'
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo systemctl restart mlb-led-scoreboard'
 ```
 
-### Running Directly on the Pi
-
-If you're SSH'd in or on the Pi directly:
+**Status / recent logs:**
 ```bash
-cd /home/pi/mlb-led-scoreboard
-bash run.sh
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo systemctl status mlb-led-scoreboard --no-pager'
 ```
 
-Or run in the foreground (useful for debugging):
+**Tail live logs:**
 ```bash
-sudo python main.py \
-  --led-gpio-mapping="adafruit-hat-pwm" \
-  --led-rows=16 \
-  --led-cols=64 \
-  --led-slowdown-gpio=2 \
-  --led-no-hardware-pulse=1
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'tail -f /home/pi/mlb-led-scoreboard/logs/mlbled.log'
+```
+
+### Shutdown the Pi safely
+
+Always shut down before unplugging — dirty power-off can corrupt SD card files:
+```bash
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo shutdown now'
+```
+
+### Auto-sleep after 3 hours
+
+The scoreboard automatically clears the display and stops after 3 hours. The Pi stays on. To turn the display back on, start the service again.
+
+### Garbled display (random colored pixels)
+
+`check-matrix.sh` runs automatically before each service start and detects corruption via SHA256 checksum. If the `.so` has changed since the last good build, it deletes the submodule and reinstalls from scratch (~15 min).
+
+To trigger a recovery immediately:
+```bash
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'sudo systemctl restart mlb-led-scoreboard'
+```
+
+Monitor reinstall progress:
+```bash
+sshpass -p 'PASSWORD' ssh -o StrictHostKeyChecking=no pi@scoreboard.local \
+  'tail -f /tmp/install.log'
 ```
 
 ---

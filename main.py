@@ -16,6 +16,7 @@ if statsapi_version < (1, 9, 0):
 
 import logging
 import os
+import signal
 import threading
 import time
 
@@ -72,6 +73,11 @@ def main(matrix, config_base):
     # Create a new data object to manage the MLB data
     # This will fetch initial data from MLB
     data = Data(config)
+
+    # Shut down after 3 hours so the Pi can be safely unplugged
+    shutdown_timer = threading.Timer(3 * 3600, lambda: os.kill(os.getpid(), signal.SIGTERM))
+    shutdown_timer.daemon = True
+    shutdown_timer.start()
 
     # create render thread
     render = threading.Thread(target=__render_main, args=[matrix, data], name="render_thread", daemon=True)
@@ -156,6 +162,9 @@ def __render_main(matrix, data):
 
 
 if __name__ == "__main__":
+    # Exit cleanly on SIGTERM so the display is cleared and systemd doesn't auto-restart
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
+
     # Check for led configuration arguments
     clargs = args()
     matrixOptions = led_matrix_options(clargs)

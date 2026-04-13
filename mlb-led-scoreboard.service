@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/home/pi/mlb-led-scoreboard
+ExecStartPre=/bin/bash /home/pi/mlb-led-scoreboard/check-matrix.sh
 ExecStart=/home/pi/mlb-led-scoreboard/venv/bin/python main.py \
   --led-gpio-mapping=adafruit-hat-pwm \
   --led-rows=16 \

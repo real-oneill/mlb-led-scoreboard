@@ -177,7 +177,7 @@ if __name__ == "__main__":
     matrix = RGBMatrix(options=matrixOptions)
     try:
         main(matrix, clargs.config)
-    except:
+    except Exception:
         debug.exception("Untrapped error in main!")
         sys.exit(1)
     finally:

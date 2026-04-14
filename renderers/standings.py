@@ -112,6 +112,9 @@ def __render_static_wide_standings(canvas, layout, colors, division, league):
     offset += start
 
     for team in division.teams:
+        if offset >= canvas.height:
+            break
+
         graphics.DrawLine(canvas, 0, offset, coords["width"], offset, divider_color)
 
         color = team_elim_color if team.elim else (team_clinched_color if team.clinched else team_name_color)

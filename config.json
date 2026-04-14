@@ -1,7 +1,11 @@
 {
 	"preferred": {
-		"teams": ["White Sox"],
-		"divisions": ["AL Central"]
+		"teams": [
+			"White Sox"
+		],
+		"divisions": [
+			"AL Central"
+		]
 	},
 	"news_ticker": {
 		"team_offday": false,
@@ -16,7 +20,8 @@
 	"standings": {
 		"team_offday": false,
 		"mlb_offday": false,
-		"always_display": false
+		"always_display": false,
+		"display_no_games_live": false
 	},
 	"rotation": {
 		"enabled": true,

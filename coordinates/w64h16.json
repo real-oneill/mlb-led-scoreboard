@@ -227,7 +227,7 @@
   },
   "standings": {
     "offset": 4,
-    "height": 16,
+    "height": 15,
     "width": 64,
     "divider": {
       "x": 12

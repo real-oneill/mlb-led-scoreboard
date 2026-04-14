@@ -35,6 +35,8 @@ from version import SCRIPT_NAME, SCRIPT_VERSION
 
 
 def main(matrix, config_base):
+    # Clear any stale hardware state from a previous run
+    matrix.Clear()
 
     # Read scoreboard options from config.json if it exists
     config = Config(config_base, matrix.width, matrix.height)

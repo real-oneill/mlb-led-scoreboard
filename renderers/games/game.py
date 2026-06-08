@@ -12,6 +12,18 @@ from data.plays import PLAY_RESULTS
 from renderers import scrollingtext
 from renderers.games import nohitter
 
+# ── Home run celebration imports ─────────────────────────────────────────────
+import time
+import pinwheel_leds
+
+# Initialize pinwheel LEDs once at module load
+pinwheel_leds.setup()
+
+# Track last homer so we only trigger once per new home run event
+_last_hr_key = None
+
+CWS_ABBREVS = {"CWS", "CHW"}
+
 
 def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboard, text_pos, animation_time):
     pos = 0
@@ -27,7 +39,6 @@ def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboa
                 scoreboard.pitches
              )
 
-        # Check if we're deep enough into a game and it's a no hitter or perfect game
         should_display_nohitter = layout.coords("nohitter")["innings_until_display"]
         if scoreboard.inning.number > should_display_nohitter:
             if layout.state_is_nohitter():
@@ -36,14 +47,119 @@ def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboa
         _render_count(canvas, layout, colors, scoreboard.pitches)
         _render_outs(canvas, layout, colors, scoreboard.outs)
         _render_bases(canvas, layout, colors, scoreboard.bases, scoreboard.homerun(), (animation_time % 16) // 5)
-
         _render_inning_display(canvas, layout, colors, scoreboard.inning)
+
+        # ── Home run detection & celebration ─────────────────────────────────
+        _check_and_celebrate_homerun(canvas, layout, colors, scoreboard)
 
     else:
         _render_inning_break(canvas, layout, colors, scoreboard.inning)
         pos = _render_due_up(canvas, layout, colors, scoreboard.atbat, text_pos)
 
     return pos
+
+
+# ── Home run logic ────────────────────────────────────────────────────────────
+
+def _check_and_celebrate_homerun(canvas, layout, colors, scoreboard: Scoreboard):
+    global _last_hr_key
+
+    if not scoreboard.homerun():
+        return
+
+    home_abbrev = scoreboard.home_team.abbrev.upper()
+    away_abbrev = scoreboard.away_team.abbrev.upper()
+    is_top      = scoreboard.inning.state == Inning.TOP
+    cws_home    = home_abbrev in CWS_ABBREVS
+    cws_away    = away_abbrev in CWS_ABBREVS
+
+    # Who is batting?
+    cws_batting  = (cws_home and not is_top) or (cws_away and is_top)
+    home_batting = not is_top
+
+    if cws_batting:
+        team_name = "White Sox"
+    elif home_batting:
+        team_name = scoreboard.home_team.name
+    else:
+        # Away team hit the homer and it's not CWS — don't celebrate
+        return
+
+    # Build a unique key for this homer so we only fire once
+    hr_key = f"{away_abbrev}@{home_abbrev}_inn{scoreboard.inning.number}_{scoreboard.inning.state}_{scoreboard.home_team.runs}_{scoreboard.away_team.runs}"
+    if hr_key == _last_hr_key:
+        return
+    _last_hr_key = hr_key
+
+    # Fire LEDs in background (non-blocking)
+    pinwheel_leds.trigger_async()
+
+    # Run full-screen matrix celebration
+    _run_celebration(canvas, layout, colors, team_name)
+
+
+def _run_celebration(canvas, layout, colors, team_name):
+    """Scrolls HOME RUN text + cycles bases on the matrix for 8 seconds."""
+    font       = layout.font("atbat.batter")
+    text_color = graphics.Color(255, 255, 255)
+    base_color = graphics.Color(255, 200, 0)
+
+    text = f"  {team_name.upper()} HOME RUN!  "
+    char_width       = font["size"]["width"]
+    text_pixel_width = char_width * len(text)
+
+    base_px = [
+        layout.coords("bases.1B"),
+        layout.coords("bases.2B"),
+        layout.coords("bases.3B"),
+    ]
+    base_outline_colors = [
+        colors.graphics_color("bases.1B"),
+        colors.graphics_color("bases.2B"),
+        colors.graphics_color("bases.3B"),
+    ]
+
+    # Sequence of which bases are "lit" — cycles during animation
+    bases_sequence = [
+        [True,  False, False],
+        [False, True,  False],
+        [False, False, True],
+        [True,  True,  False],
+        [False, True,  True],
+        [True,  True,  True],
+        [True,  False, True],
+    ]
+
+    # Try to get canvas width — fall back to 128 for a 128x32 panel
+    try:
+        canvas_width = canvas.width
+    except AttributeError:
+        canvas_width = 128
+
+    x_pos    = canvas_width
+    start    = time.time()
+    duration = 8.0
+
+    while time.time() - start < duration:
+        canvas.Clear()
+
+        # Scrolling text
+        graphics.DrawText(canvas, font["font"], x_pos, 10, text_color, text)
+        x_pos -= 1
+        if x_pos < -text_pixel_width:
+            x_pos = canvas_width
+
+        # Cycling base runners
+        cycle_idx = int((time.time() - start) / 0.35) % len(bases_sequence)
+        runners   = bases_sequence[cycle_idx]
+        for i in range(3):
+            __render_base_outline(canvas, base_px[i], base_outline_colors[i])
+            if runners[i]:
+                __render_baserunner(canvas, base_px[i], base_color)
+
+        time.sleep(0.02)
+
+    canvas.Clear()
 
 
 # --------------- at-bat ---------------
@@ -174,8 +290,6 @@ def _render_bases(canvas, layout, colors, bases: Bases, home_run, animation):
 
     for base in range(len(base_runners)):
         __render_base_outline(canvas, base_px[base], base_colors[base])
-
-        # Fill in the base if there's currently a baserunner or cycle if theres a homer
         if base_runners[base] or (home_run and animation == base):
             __render_baserunner(canvas, base_px[base], base_colors[base])
 
@@ -229,19 +343,16 @@ def _render_outs(canvas, layout, colors, outs):
     out_px.append(layout.coords("outs.2"))
     out_px.append(layout.coords("outs.3"))
 
-    out_colors = []
     out_colors, fill_colors = __out_colors(colors)
 
     for out in range(len(out_px)):
         __render_out_circle(canvas, out_px[out], out_colors[out])
-        # Fill in the circle if that out has occurred
         if outs.number > out:
             __fill_out_circle(canvas, out_px[out], fill_colors[out])
 
 
 def __render_out_circle(canvas, out, color):
     x, y, size = (out["x"], out["y"], out["size"])
-
     graphics.DrawLine(canvas, x, y, x + size, y, color)
     graphics.DrawLine(canvas, x, y, x, y + size, color)
     graphics.DrawLine(canvas, x + size, y + size, x, y + size, color)
@@ -260,7 +371,6 @@ def __fill_out_circle(canvas, out, color):
 
 # --------------- inning information ---------------
 def _render_inning_break(canvas, layout, colors, inning: Inning):
-
     text_font = layout.font("inning.break.text")
     num_font = layout.font("inning.break.number")
     text_coords = layout.coords("inning.break.text")
@@ -277,17 +387,11 @@ def _render_inning_break(canvas, layout, colors, inning: Inning):
 def _render_due_up(canvas, layout, colors, atbat: AtBat, text_pos):
     batter_font = layout.font("inning.break.due_up.leadoff")
     batter_color = colors.graphics_color("inning.break.due_up_names")
-
     leadoff = layout.coords("inning.break.due_up.leadoff")
     background = colors.graphics_color("default.background")
-
-    # Combine all due-up batters into a single scrolling string so short
-    # names still scroll and the viewer sees the full batting order.
     names = [n for n in [atbat.batter, atbat.onDeck, atbat.inHole] if n]
     combined = "Due Up: " + ", ".join(names) if names else ""
-
     p1 = scrollingtext.render_text(canvas, leadoff["x"], leadoff["y"], leadoff["width"], batter_font, batter_color, background, combined, text_pos, center=False)
-
     return p1
 
 

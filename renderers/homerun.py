@@ -1,122 +1,104 @@
 """
 renderers/homerun.py
 --------------------
-Renders the home run celebration on the LED matrix.
-- Scrolls "[TEAM NAME] HOME RUN!" across the full display
-- Cycles base runner diamonds during the scroll (reusing existing base rendering)
-- Runs for a fixed duration then returns control to the main render loop
+Home run celebration on the LED matrix, played in two NON-overlapping phases:
 
-Uses the same graphics primitives and layout system as the rest of the scoreboard.
+  Phase 1 — full-screen scrolling "<TEAM> HOME RUN!" banner in gold; pinwheel LEDs fire.
+  Phase 2 — the normal live game screen (inning, count, outs, score) with a single
+            base runner advancing 1B -> 2B -> 3B; pinwheel LEDs fire again.
+
+Phase 2 reuses the live game renderer (renderers.games.game.render_live_game) and the
+team banner so it matches the regular scoreboard exactly. The advancing runner is driven
+through render_live_game's built-in home run base animation: it lights base index
+(animation_time % 16) // 5, so passing animation_time = base_index * 5 lights one base
+at a time.
+
+This module is self-contained: call celebrate_homerun(matrix, config, scoreboard, team).
 """
 
 import time
+
 import debug
+import pinwheel_leds
 from driver import graphics
+from renderers.games import game as gamerender
+from renderers.games import teams
 
+# Initialize pinwheel LED pins once (idempotent; no-op in mock mode off-Pi)
+pinwheel_leds.setup()
 
-# How long the animation plays in seconds
-HR_ANIMATION_DURATION = 8
-
-# Scroll speed — lower = faster
+# Phase 1 banner scroll speed — lower = faster
 SCROLL_DELAY = 0.02
 
+# Phase 2: seconds each base stays lit as the runner advances
+BASE_ADVANCE_HOLD = 1.0
 
-def render_homerun_celebration(matrix, layout, colors, team_name, font_key="atbat.batter"):
-    """
-    Main entry point. Call this from the game renderer when a home run is detected.
+# Phase 2 frame pacing
+PHASE2_FRAME_DELAY = 0.03
 
-    Args:
-        matrix:     The RGBMatrix instance
-        layout:     Layout object (for coords and fonts)
-        colors:     Color object (for graphics colors)
-        team_name:  Full team name string e.g. "White Sox", "Cubs"
-        font_key:   Font to use for scrolling text (defaults to batter font)
-    """
+# Gold/yellow — matches the base color; used for the banner text
+HR_GOLD = (255, 200, 0)
+
+
+def celebrate_homerun(matrix, config, scoreboard, team_name):
+    """Run the full two-phase home run celebration on the matrix."""
     try:
-        font = layout.font(font_key)
-        text_color = graphics.Color(255, 255, 255)   # white text
-        bg_color   = colors.graphics_color("default.background")
-        base_color = graphics.Color(255, 200, 0)     # gold bases
-
-        text = f"  {team_name.upper()} HOME RUN!  "
-        char_width = font["size"]["width"]
-        text_pixel_width = char_width * len(text)
-
-        # Base cycling sequence — cycles through which bases are "lit"
-        # during the animation to look like runners going around
-        bases_sequence = [
-            [True,  False, False],   # runner on 1st
-            [False, True,  False],   # runner on 2nd
-            [False, False, True],    # runner on 3rd
-            [True,  True,  False],   # 1st and 2nd
-            [False, True,  True],    # 2nd and 3rd
-            [True,  True,  True],    # bases loaded
-            [True,  False, True],    # corners
-        ]
-
-        # Get base pixel coords from layout (same as normal game rendering)
-        base_px = [
-            layout.coords("bases.1B"),
-            layout.coords("bases.2B"),
-            layout.coords("bases.3B"),
-        ]
-        base_colors = [
-            colors.graphics_color("bases.1B"),
-            colors.graphics_color("bases.2B"),
-            colors.graphics_color("bases.3B"),
-        ]
-
-        offscreen = matrix.CreateFrameCanvas()
-        x_pos = matrix.width
-        start = time.time()
-
-        while time.time() - start < HR_ANIMATION_DURATION:
-            offscreen.Clear()
-
-            # ── Scrolling text ──────────────────────────────────────
-            graphics.DrawText(offscreen, font["font"], x_pos, 10, text_color, text)
-            x_pos -= 1
-            if x_pos < -text_pixel_width:
-                x_pos = matrix.width  # loop the scroll
-
-            # ── Cycling base runners ────────────────────────────────
-            cycle_idx = int((time.time() - start) / 0.35) % len(bases_sequence)
-            runners = bases_sequence[cycle_idx]
-
-            for i in range(3):
-                _render_base_outline(offscreen, base_px[i], base_colors[i])
-                if runners[i]:
-                    _render_baserunner(offscreen, base_px[i], base_color)
-
-            offscreen = matrix.SwapOnVSync(offscreen)
-            time.sleep(SCROLL_DELAY)
-
-        # Clear the canvas when done
-        offscreen.Clear()
-        matrix.SwapOnVSync(offscreen)
-
+        _phase1_banner(matrix, config, team_name)
+        _phase2_live_with_runner(matrix, config, scoreboard)
     except Exception as e:
-        debug.error(f"Home run animation error: {e}")
+        debug.error("Home run celebration error: %s", e)
 
 
-# ── Base drawing helpers (mirrors game.py exactly) ──────────────────────────
+def _phase1_banner(matrix, config, team_name):
+    """Full-screen gold 'TEAM HOME RUN!' scrolled across once; LEDs fire."""
+    layout = config.layout
+    font = layout.font("atbat.batter")
+    text_color = graphics.Color(*HR_GOLD)
 
-def _render_base_outline(canvas, base, color):
-    x, y = base["x"], base["y"]
-    size = base["size"]
-    half = abs(size // 2)
-    graphics.DrawLine(canvas, x + half, y,        x,        y + half, color)
-    graphics.DrawLine(canvas, x + half, y,        x + size, y + half, color)
-    graphics.DrawLine(canvas, x + half, y + size, x,        y + half, color)
-    graphics.DrawLine(canvas, x + half, y + size, x + size, y + half, color)
+    text = f"  {team_name.upper()} HOME RUN!  "
+    text_pixel_width = font["size"]["width"] * len(text)
+
+    pinwheel_leds.trigger_async()
+
+    offscreen = matrix.CreateFrameCanvas()
+    x_pos = matrix.width
+    # Scroll the banner exactly once, until it has fully exited the left edge
+    while x_pos > -text_pixel_width:
+        offscreen.Clear()
+        graphics.DrawText(offscreen, font["font"], x_pos, 10, text_color, text)
+        x_pos -= 1
+        offscreen = matrix.SwapOnVSync(offscreen)
+        time.sleep(SCROLL_DELAY)
 
 
-def _render_baserunner(canvas, base, color):
-    x, y = base["x"], base["y"]
-    size = base["size"]
-    half = abs(size // 2)
-    for offset in range(1, half + 1):
-        graphics.DrawLine(canvas, x + half - offset, y + size - offset,
-                                  x + half + offset, y + size - offset, color)
-        graphics.DrawLine(canvas, x + half - offset, y + offset,
-                                  x + half + offset, y + offset,         color)
+def _phase2_live_with_runner(matrix, config, scoreboard):
+    """Normal live screen + a single runner advancing 1B -> 2B -> 3B; LEDs fire."""
+    layout = config.layout
+    colors = config.scoreboard_colors
+    team_colors = config.team_colors
+
+    pinwheel_leds.trigger_async()
+
+    offscreen = matrix.CreateFrameCanvas()
+    text_pos = offscreen.width
+
+    for base_index in range(3):  # 0 -> 1B, 1 -> 2B, 2 -> 3B
+        # animation_time = base_index * 5 makes render_live_game light exactly this base
+        animation_time = base_index * 5
+        hold_start = time.time()
+        while time.time() - hold_start < BASE_ADVANCE_HOLD:
+            offscreen.Clear()
+            gamerender.render_live_game(offscreen, layout, colors, scoreboard, text_pos, animation_time)
+            teams.render_team_banner(
+                offscreen,
+                layout,
+                team_colors,
+                scoreboard.home_team,
+                scoreboard.away_team,
+                config.full_team_names,
+                config.short_team_names_for_runs_hits,
+                show_score=True,
+            )
+            offscreen = matrix.SwapOnVSync(offscreen)
+            text_pos -= 1
+            time.sleep(PHASE2_FRAME_DELAY)

@@ -7,7 +7,7 @@ from data import Data, status
 from data.scoreboard import Scoreboard
 from data.scoreboard.postgame import Postgame
 from data.scoreboard.pregame import Pregame
-from renderers import network, offday, standings
+from renderers import homerun, network, offday, standings
 from renderers.games import game as gamerender
 from renderers.games import irregular
 from renderers.games import postgame as postgamerender
@@ -172,6 +172,11 @@ class MainRenderer:
             network.render_network_error(self.canvas, layout, colors)
 
         self.canvas = self.matrix.SwapOnVSync(self.canvas)
+
+        # A new home run takes over the screen with the two-phase celebration
+        team_name = gamerender.detect_homerun(scoreboard)
+        if team_name is not None:
+            homerun.celebrate_homerun(self.matrix, self.data.config, scoreboard, team_name)
 
     def __draw_news(self, cond: Callable[[], bool]):
         """

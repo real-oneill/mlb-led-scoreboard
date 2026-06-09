@@ -12,14 +12,7 @@ from data.plays import PLAY_RESULTS
 from renderers import scrollingtext
 from renderers.games import nohitter
 
-# ── Home run celebration imports ─────────────────────────────────────────────
-import time
-import pinwheel_leds
-
-# Initialize pinwheel LEDs once at module load
-pinwheel_leds.setup()
-
-# Track last homer so we only trigger once per new home run event
+# Track last homer so we only celebrate once per new home run event
 _last_hr_key = None
 
 CWS_ABBREVS = {"CWS", "CHW"}
@@ -49,9 +42,6 @@ def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboa
         _render_bases(canvas, layout, colors, scoreboard.bases, scoreboard.homerun(), (animation_time % 16) // 5)
         _render_inning_display(canvas, layout, colors, scoreboard.inning)
 
-        # ── Home run detection & celebration ─────────────────────────────────
-        _check_and_celebrate_homerun(canvas, layout, colors, scoreboard)
-
     else:
         _render_inning_break(canvas, layout, colors, scoreboard.inning)
         pos = _render_due_up(canvas, layout, colors, scoreboard.atbat, text_pos)
@@ -61,11 +51,18 @@ def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboa
 
 # ── Home run logic ────────────────────────────────────────────────────────────
 
-def _check_and_celebrate_homerun(canvas, layout, colors, scoreboard: Scoreboard):
+def detect_homerun(scoreboard: Scoreboard):
+    """
+    Return the celebrating team's display name if a NEW home run should be
+    celebrated, or None. Deduplicates so each homer only fires once.
+
+    The celebration itself is rendered by renderers.homerun.celebrate_homerun,
+    invoked from the main render loop (which owns the matrix and team colors).
+    """
     global _last_hr_key
 
     if not scoreboard.homerun():
-        return
+        return None
 
     home_abbrev = scoreboard.home_team.abbrev.upper()
     away_abbrev = scoreboard.away_team.abbrev.upper()
@@ -83,83 +80,15 @@ def _check_and_celebrate_homerun(canvas, layout, colors, scoreboard: Scoreboard)
         team_name = scoreboard.home_team.name
     else:
         # Away team hit the homer and it's not CWS — don't celebrate
-        return
+        return None
 
     # Build a unique key for this homer so we only fire once
     hr_key = f"{away_abbrev}@{home_abbrev}_inn{scoreboard.inning.number}_{scoreboard.inning.state}_{scoreboard.home_team.runs}_{scoreboard.away_team.runs}"
     if hr_key == _last_hr_key:
-        return
+        return None
     _last_hr_key = hr_key
 
-    # Fire LEDs in background (non-blocking)
-    pinwheel_leds.trigger_async()
-
-    # Run full-screen matrix celebration
-    _run_celebration(canvas, layout, colors, team_name)
-
-
-def _run_celebration(canvas, layout, colors, team_name):
-    """Scrolls HOME RUN text + cycles bases on the matrix for 8 seconds."""
-    font       = layout.font("atbat.batter")
-    text_color = graphics.Color(255, 255, 255)
-    base_color = graphics.Color(255, 200, 0)
-
-    text = f"  {team_name.upper()} HOME RUN!  "
-    char_width       = font["size"]["width"]
-    text_pixel_width = char_width * len(text)
-
-    base_px = [
-        layout.coords("bases.1B"),
-        layout.coords("bases.2B"),
-        layout.coords("bases.3B"),
-    ]
-    base_outline_colors = [
-        colors.graphics_color("bases.1B"),
-        colors.graphics_color("bases.2B"),
-        colors.graphics_color("bases.3B"),
-    ]
-
-    # Sequence of which bases are "lit" — cycles during animation
-    bases_sequence = [
-        [True,  False, False],
-        [False, True,  False],
-        [False, False, True],
-        [True,  True,  False],
-        [False, True,  True],
-        [True,  True,  True],
-        [True,  False, True],
-    ]
-
-    # Try to get canvas width — fall back to 128 for a 128x32 panel
-    try:
-        canvas_width = canvas.width
-    except AttributeError:
-        canvas_width = 128
-
-    x_pos    = canvas_width
-    start    = time.time()
-    duration = 8.0
-
-    while time.time() - start < duration:
-        canvas.Clear()
-
-        # Scrolling text
-        graphics.DrawText(canvas, font["font"], x_pos, 10, text_color, text)
-        x_pos -= 1
-        if x_pos < -text_pixel_width:
-            x_pos = canvas_width
-
-        # Cycling base runners
-        cycle_idx = int((time.time() - start) / 0.35) % len(bases_sequence)
-        runners   = bases_sequence[cycle_idx]
-        for i in range(3):
-            __render_base_outline(canvas, base_px[i], base_outline_colors[i])
-            if runners[i]:
-                __render_baserunner(canvas, base_px[i], base_color)
-
-        time.sleep(0.02)
-
-    canvas.Clear()
+    return team_name
 
 
 # --------------- at-bat ---------------

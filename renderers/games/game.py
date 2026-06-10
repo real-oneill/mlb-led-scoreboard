@@ -12,13 +12,15 @@ from data.plays import PLAY_RESULTS
 from renderers import scrollingtext
 from renderers.games import nohitter
 
-# Track last homer so we only celebrate once per new home run event
-_last_hr_key = None
+# Latch key while play_result stays "home_run" so each homer celebrates once
+_hr_latch_key = None
 
 CWS_ABBREVS = {"CWS", "CHW"}
 
 
-def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboard, text_pos, animation_time):
+def render_live_game(
+    canvas, layout: Layout, colors: Color, scoreboard: Scoreboard, text_pos, animation_time, homerun_animation=False
+):
     pos = 0
     if not status.is_inning_break(scoreboard.inning.state):
         pos = _render_at_bat(
@@ -39,7 +41,10 @@ def render_live_game(canvas, layout: Layout, colors: Color, scoreboard: Scoreboa
 
         _render_count(canvas, layout, colors, scoreboard.pitches)
         _render_outs(canvas, layout, colors, scoreboard.outs)
-        _render_bases(canvas, layout, colors, scoreboard.bases, scoreboard.homerun(), (animation_time % 16) // 5)
+        # The cycling-bases home run animation only runs when explicitly requested
+        # (phase 2 of the celebration) — never on the regular live screen, where it
+        # would keep cycling for as long as the API still reports the homer.
+        _render_bases(canvas, layout, colors, scoreboard.bases, homerun_animation, (animation_time % 16) // 5)
         _render_inning_display(canvas, layout, colors, scoreboard.inning)
 
     else:
@@ -59,13 +64,23 @@ def detect_homerun(scoreboard: Scoreboard):
     The celebration itself is rendered by renderers.homerun.celebrate_homerun,
     invoked from the main render loop (which owns the matrix and team colors).
     """
-    global _last_hr_key
-
-    if not scoreboard.homerun():
-        return None
+    global _hr_latch_key
 
     home_abbrev = scoreboard.home_team.abbrev.upper()
     away_abbrev = scoreboard.away_team.abbrev.upper()
+    game_key = f"{away_abbrev}@{home_abbrev}"
+
+    if not scoreboard.homerun():
+        # Homer is over for this game — release the latch so the next one fires
+        if _hr_latch_key == game_key:
+            _hr_latch_key = None
+        return None
+
+    if _hr_latch_key == game_key:
+        # Still the same homer (the API reports it until the next play starts)
+        return None
+    _hr_latch_key = game_key
+
     is_top      = scoreboard.inning.state == Inning.TOP
     cws_home    = home_abbrev in CWS_ABBREVS
     cws_away    = away_abbrev in CWS_ABBREVS
@@ -81,12 +96,6 @@ def detect_homerun(scoreboard: Scoreboard):
     else:
         # Away team hit the homer and it's not CWS — don't celebrate
         return None
-
-    # Build a unique key for this homer so we only fire once
-    hr_key = f"{away_abbrev}@{home_abbrev}_inn{scoreboard.inning.number}_{scoreboard.inning.state}_{scoreboard.home_team.runs}_{scoreboard.away_team.runs}"
-    if hr_key == _last_hr_key:
-        return None
-    _last_hr_key = hr_key
 
     return team_name
 

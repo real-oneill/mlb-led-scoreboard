@@ -30,6 +30,9 @@ pinwheel_leds.setup()
 # Phase 1 banner scroll speed — lower = faster
 SCROLL_DELAY = 0.02
 
+# Phase 1: how many times the banner scrolls across the screen
+BANNER_PASSES = 2
+
 # Phase 2: seconds each base stays lit as the runner advances
 BASE_ADVANCE_HOLD = 1.0
 
@@ -43,14 +46,16 @@ HR_GOLD = (255, 200, 0)
 def celebrate_homerun(matrix, config, scoreboard, team_name):
     """Run the full two-phase home run celebration on the matrix."""
     try:
+        debug.log("Home run celebration starting for %s", team_name)
         _phase1_banner(matrix, config, team_name)
         _phase2_live_with_runner(matrix, config, scoreboard)
+        debug.log("Home run celebration finished")
     except Exception as e:
         debug.error("Home run celebration error: %s", e)
 
 
 def _phase1_banner(matrix, config, team_name):
-    """Full-screen gold 'TEAM HOME RUN!' scrolled across once; LEDs fire."""
+    """Full-screen gold 'TEAM HOME RUN!' scrolled across BANNER_PASSES times; LEDs fire."""
     layout = config.layout
     font = layout.font("atbat.batter")
     text_color = graphics.Color(*HR_GOLD)
@@ -61,14 +66,15 @@ def _phase1_banner(matrix, config, team_name):
     pinwheel_leds.trigger_async()
 
     offscreen = matrix.CreateFrameCanvas()
-    x_pos = matrix.width
-    # Scroll the banner exactly once, until it has fully exited the left edge
-    while x_pos > -text_pixel_width:
-        offscreen.Clear()
-        graphics.DrawText(offscreen, font["font"], x_pos, 10, text_color, text)
-        x_pos -= 1
-        offscreen = matrix.SwapOnVSync(offscreen)
-        time.sleep(SCROLL_DELAY)
+    for _ in range(BANNER_PASSES):
+        x_pos = matrix.width
+        # Scroll the banner until it has fully exited the left edge
+        while x_pos > -text_pixel_width:
+            offscreen.Clear()
+            graphics.DrawText(offscreen, font["font"], x_pos, 10, text_color, text)
+            x_pos -= 1
+            offscreen = matrix.SwapOnVSync(offscreen)
+            time.sleep(SCROLL_DELAY)
 
 
 def _phase2_live_with_runner(matrix, config, scoreboard):
@@ -88,7 +94,9 @@ def _phase2_live_with_runner(matrix, config, scoreboard):
         hold_start = time.time()
         while time.time() - hold_start < BASE_ADVANCE_HOLD:
             offscreen.Clear()
-            gamerender.render_live_game(offscreen, layout, colors, scoreboard, text_pos, animation_time)
+            gamerender.render_live_game(
+                offscreen, layout, colors, scoreboard, text_pos, animation_time, homerun_animation=True
+            )
             teams.render_team_banner(
                 offscreen,
                 layout,

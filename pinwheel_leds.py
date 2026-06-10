@@ -15,6 +15,7 @@ Pin order (left → right across the scoreboard pinwheels):
     GND        → bonnet GND pad near TX/RX
 """
 
+import sys
 import threading
 import time
 import debug
@@ -26,7 +27,7 @@ try:
     _MOCK = False
 except ImportError:
     _MOCK = True
-    debug.warning("RPi.GPIO not found — pinwheel LEDs running in mock mode")
+    debug.warning("RPi.GPIO not importable by %s — pinwheel LEDs running in mock mode", sys.executable)
 
 _initialized = False
 
@@ -97,6 +98,10 @@ def home_run_sequence():
 
 def trigger_async():
     """Fire the LED sequence in a background thread (non-blocking)."""
+    if _MOCK:
+        debug.warning("Pinwheel LED trigger skipped — running in mock mode (RPi.GPIO unavailable)")
+    else:
+        debug.log("Pinwheel LED sequence triggered")
     t = threading.Thread(target=home_run_sequence, daemon=True)
     t.start()
     return t

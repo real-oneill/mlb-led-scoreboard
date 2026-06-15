@@ -63,10 +63,10 @@ def _phase1_banner(matrix, config, team_name):
     text = f"  {team_name.upper()} HOME RUN!  "
     text_pixel_width = font["size"]["width"] * len(text)
 
-    pinwheel_leds.trigger_async()
-
     offscreen = matrix.CreateFrameCanvas()
     for _ in range(BANNER_PASSES):
+        # Fire the LED sequence once per banner pass (2 passes -> 2 LED cycles in phase 1)
+        pinwheel_leds.trigger_async()
         x_pos = matrix.width
         # Scroll the banner until it has fully exited the left edge
         while x_pos > -text_pixel_width:
